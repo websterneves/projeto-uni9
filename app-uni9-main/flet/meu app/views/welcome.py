@@ -8,20 +8,6 @@ def welcome_view(page: ft.Page):
         page.go("/create_account") # Rota atualizada para /create_account
     
     def login_sso(e):
-        # A URL do Keycloak ou de outro provedor SSO viria do seu backend ou de uma configuração.
-        # Por enquanto, é apenas um placeholder.
-        # KEYCLOAK_AUTH_URL = "https://seu-keycloak.com/realms/sua-realm/protocol/openid-connect/auth"
-        # CLIENT_ID = "seu-client-id"
-        # REDIRECT_URI = "https://seu-backend.com/callback"
-
-        # url = (
-        #     f"{KEYCLOAK_AUTH_URL}"
-        #     f"?client_id={CLIENT_ID}"
-        #     f"&redirect_uri={REDIRECT_URI}"
-        #     f"&response_type=code"
-        #     f"&scope=openid"
-        # )
-        # page.launch_url(url)
         page.snack_bar = ft.SnackBar(
             content=ft.Text("Funcionalidade SSO não implementada ainda!"),
             bgcolor=ft.colors.ORANGE_700

@@ -1,9 +1,8 @@
 import flet as ft
-import requests # Importar a biblioteca requests para fazer requisições HTTP
-import json # Importar json para trabalhar com dados JSON
-import config # Importa as configurações do nosso arquivo config.py
-# O módulo asyncio e a classe MockErrorResponse não são mais necessários,
-# pois a requisição HTTP será feita de forma síncrona e direta.
+import requests 
+import json 
+import config 
+
 
 def signup_view(page: ft.Page): # Renomeado para signup_view para refletir o uso como tela de login
     # Campo de texto para exibir mensagens de erro gerais da API
@@ -13,9 +12,7 @@ def signup_view(page: ft.Page): # Renomeado para signup_view para refletir o uso
         page.views.pop()
         page.go("/")
 
-    # Função de login agora totalmente SÍNCRONA
-    # Todas as operações de UI (habilitar/desabilitar botão, mostrar indicador, etc.)
-    # e a chamada HTTP serão feitas na mesma thread de execução.
+
     def perform_login(e):
         # Limpar mensagens de erro anteriores e erros de validação
         api_message_text.visible = False
@@ -43,19 +40,18 @@ def signup_view(page: ft.Page): # Renomeado para signup_view para refletir o uso
             terms_error.visible = True
             error = True
         
-        page.update() # Atualiza para mostrar os erros de validação locais
+        page.update() 
         
         if error:
-            return # Se houver erros locais, não prossegue para a API
+            return 
 
-        # Se as validações locais passarem, tenta logar via API
         try:
-            # Desabilita o botão e mostra o indicador de carregamento
+            
             login_button.disabled = True
             loading_indicator.visible = True
-            page.update() # Atualiza a UI para refletir essas mudanças
+            page.update() 
 
-            # Verifica se FLASK_BACKEND_URL está definido em config.py
+            
             if not hasattr(config, 'FLASK_BACKEND_URL'):
                 api_message_text.value = "Erro de configuração: 'FLASK_BACKEND_URL' não encontrado em config.py."
                 api_message_text.color = "#DC2626"
@@ -68,9 +64,7 @@ def signup_view(page: ft.Page): # Renomeado para signup_view para refletir o uso
                 "senha": password_value
             }
             
-            # Chamada síncrona direta ao backend Flask.
-            # Esta linha pode causar um congelamento temporário da UI
-            # enquanto aguarda a resposta do servidor.
+
             response = requests.post(f"{config.FLASK_BACKEND_URL}/login", json=payload, timeout=10)
             
             # Levanta um HTTPError para códigos de status 4xx/5xx
@@ -92,8 +86,7 @@ def signup_view(page: ft.Page): # Renomeado para signup_view para refletir o uso
                 page.go("/dashboard") 
 
             else:
-                # Caso o backend retorne um erro 4xx, mas sem lançar exceção (ex: 401)
-                # Exibe a mensagem de erro da API
+
                 api_message_text.value = result.get('erro', 'Erro desconhecido ao fazer login.')
                 api_message_text.color = "#F44336" # Vermelho para erro
                 api_message_text.visible = True

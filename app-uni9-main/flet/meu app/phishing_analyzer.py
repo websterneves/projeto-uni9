@@ -118,10 +118,6 @@ def analyze_email_for_phishing(raw_email_content):
         actual_sender_address = sender_match.group(1) if sender_match else sender_email
         sender_domain = actual_sender_address.split('@')[-1].lower()
 
-        # Simple check for common spoofing (e.g., paypal.com vs paypa1.com)
-        # Requires a list of known legitimate domains, which is hard to maintain.
-        # For a basic check, we can look for suspicious variations or generic domains.
-        # This is a placeholder for a more advanced check.
         if "gmail.com" in sender_domain and not "gmail.com" in actual_sender_address: # Example: Display name says "Google" but email is from random@gmail.com
              analysis_results["risk_score"] += RISK_SCORES["sender_display_name_spoofing"]
              analysis_results["indicators"].append(f"Spoofing de nome de exibição do remetente detectado: {sender_email}")
@@ -179,18 +175,6 @@ def analyze_email_for_phishing(raw_email_content):
                         analysis_results["risk_score"] += RISK_SCORES["url_shortener"]
                         analysis_results["indicators"].append(f"Link encurtado detectado: {actual_url}")
                     
-                    #if visible_text and actual_domain:
-                    #    visible_domain_guess = re.search(r'(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})', visible_text)
-                    #    if visible_domain_guess and visible_domain_guess.group(1).lower() not in actual_domain.lower():
-                    #        analysis_results["risk_score"] += RISK_SCORES["mismatched_url"]
-                    #        analysis_results["indicators"].append(f"Discrepância URL (visível vs. real) detectada: Texto='{visible_text}', Link='{actual_url}'")
-                    #
-                    #if actual_domain and actual_domain.lower() != sender_domain:
-                    #    if any(word in actual_domain.lower() for word in ["login", "verify", "secure", "update", "bank", "account"]) and \
-                    #       not any(word in actual_domain.lower() for word in ["google", "microsoft", "apple"]): 
-                    #        analysis_results["risk_score"] += RISK_SCORES["suspicious_domain_in_url"]
-                    #        analysis_results["indicators"].append(f"Domínio de link suspeito diferente do remetente: {actual_url}")
-                        
         # Análise do corpo em texto simples (para texto, não links)
         if email_body_plain:
             if re.search(r'prezado(a)? cliente|caro(a)? usuário(a)|prezado(a)? senhor(a)?', email_body_plain.lower()):

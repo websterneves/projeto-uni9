@@ -6,19 +6,17 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-import email # Importar a biblioteca email
-from email import policy # Importar policy para parseamento de e-mails
+import email 
+from email import policy 
 
-import config # Importa as configurações do nosso arquivo config.py
-import db_operations # Importa o módulo de operações de banco de dados (MySQL)
-import phishing_analyzer # Importa o novo módulo de análise de phishing
+import config 
+import db_operations 
+import phishing_analyzer 
 
-# O caminho para o arquivo JSON de segredos do cliente.
+
 CLIENT_SECRETS_FILE = 'client_secrets.json'
 
-# Os escopos (permissões) que seu aplicativo precisa.
-# Este é o escopo CRUCIAL para acessar o conteúdo RAW do e-mail.
-# Eles devem ser definidos em config.py
+
 SCOPES = config.SCOPES 
 
 def authenticate_user(user_id):
@@ -27,11 +25,10 @@ def authenticate_user(user_id):
     Se o usuário já tiver um refresh_token, ele será recarregado e renovado se necessário.
     """
     credentials = None
-    # Tenta recuperar o refresh_token existente e os escopos armazenados para este usuário
+
     refresh_token_stored, last_access_token_stored, scopes_stored = db_operations.get_tokens_for_user(user_id)
 
-    # Verifica se há um token de atualização armazenado e se ele tem os SCOPES NECESSÁRIOS
-    # Se o token armazenado não tiver TODOS os SCOPES que queremos, força a reautenticação.
+
     requires_reauth = False
     if refresh_token_stored:
         # Verifica se todos os escopos *desejados* estão presentes nos escopos *armazenados*
@@ -72,25 +69,21 @@ def authenticate_user(user_id):
                 return None
             except Exception as e:
                 print(f"Erro ao carregar ou renovar credenciais para {user_id} do DB: {e}. Forçando nova autenticação.")
-                credentials = None # Garante que a reautenticação será forçada
-                requires_reauth = True # Indica que a reautenticação é necessária
+                credentials = None
+                requires_reauth = True 
     else:
         requires_reauth = True # Sem token armazenado, precisa de nova autenticação
     
     # Se precisar de reautenticação (ou autenticação inicial)
     if requires_reauth or not credentials or not credentials.valid:
         print(f"Iniciando novo fluxo de autenticação OAuth para o usuário {user_id} no navegador...")
-        # Cria um fluxo para aplicativos instalados.
-        # Ele abrirá uma janela do navegador para o usuário autorizar e
-        # configurará um servidor local temporário para capturar o redirecionamento.
+
         flow = InstalledAppFlow.from_client_secrets_file(
             CLIENT_SECRETS_FILE, SCOPES # Usa os SCOPES GLOBAIS (todos os necessários) para a autenticação
         )
         credentials = flow.run_local_server(port=0) 
 
-        # Armazena o refresh_token, access_token inicial e os escopos CONCEDIDOS pelo usuário
-        # É importante salvar os escopos *concedidos* (credentials.scopes),
-        # pois o usuário pode não ter autorizado todos os solicitados.
+
         db_operations.save_tokens_for_user(user_id, credentials.refresh_token, credentials.token, credentials.scopes)
         print(f"Autenticação bem-sucedida para o usuário {user_id}. Tokens armazenados no DB.")
 
@@ -125,24 +118,21 @@ def fetch_and_analyze_messages(service, user_id, max_results=10):
         print(f"\nAnalisando as últimas {len(messages)} mensagens para o usuário {user_id} (exibindo apenas as suspeitas):")
         suspicious_count = 0
         for i, message_id_obj in enumerate(messages):
-            # Busca o e-mail completo (RAW content) para análise detalhada
+
             msg_raw = service.users().messages().get(userId='me', id=message_id_obj['id'], format='raw').execute() 
-            
-            # O conteúdo 'raw' é Base64 URL-safe codificado. Precisamos decodificá-lo para string.
+
             raw_email_content_bytes = base64.urlsafe_b64decode(msg_raw['raw'])
             raw_email_content_str = raw_email_content_bytes.decode('utf-8', errors='ignore')
 
-            # PARSE O CONTEÚDO RAW PARA UM OBJETO DE MENSAGEM DO EMAIL PARA ACESSAR CABEÇALHOS
+
             parsed_email_message = email.message_from_string(raw_email_content_str, policy=policy.default)
 
-            # Extrair "From" e "Subject" do objeto de mensagem parseado
+
             msg_from = parsed_email_message['From'] if 'From' in parsed_email_message else 'N/A'
             msg_subject = parsed_email_message['Subject'] if 'Subject' in parsed_email_message else 'N/A'
-            
-            # --- CHAMA A FUNÇÃO DE ANÁLISE DE PHISHING ---
+
             analysis_results = phishing_analyzer.analyze_email_for_phishing(raw_email_content_str)
-            
-            # --- VERIFICA SE O E-MAIL É SUSPEITO PARA EXIBIÇÃO ---
+
             if analysis_results['suspicious']:
                 suspicious_count += 1
                 print(f"\n--- Mensagem Suspeita {suspicious_count} (ID: {message_id_obj['id']}) ---")
@@ -176,22 +166,21 @@ def fetch_and_analyze_messages(service, user_id, max_results=10):
 if __name__ == '__main__':
     print("--- Sistema de Análise de Phishing (Desktop) ---")
     
-    # Inicializa o banco de dados (cria a tabela se não existir)
     db_operations.init_db()
 
-    # Simulação de ID de usuário do seu sistema.
+
     current_user_id = input("Digite um ID de usuário (ex: 'joao123' ou 'maria456'): ")
 
     try:
-        # 1. Autentica o usuário ou carrega credenciais existentes do DB
+
         credentials = authenticate_user(current_user_id)
 
         if credentials:
-            # 2. Constrói o serviço da Gmail API
+
             service = get_gmail_service(credentials)
 
             if service:
-                # 3. Busca e analisa as últimas mensagens
+
                 fetch_and_analyze_messages(service, current_user_id)
         else:
             print("Não foi possível autenticar o usuário. Verifique as configurações e tente novamente.")

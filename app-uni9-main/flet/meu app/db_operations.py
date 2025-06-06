@@ -3,9 +3,9 @@ from mysql.connector import Error
 from cryptography.fernet import Fernet
 import json
 
-import config # Importa as configurações do nosso arquivo config.py
+import config 
 
-# Inicializa o Fernet com a chave de criptografia do config.py
+
 try:
     cipher_suite = Fernet(config.ENCRYPTION_KEY)
 except ValueError as e:
@@ -40,12 +40,8 @@ def get_db_connection():
             database=config.MYSQL_DATABASE,
             user=config.MYSQL_USER,
             password=config.MYSQL_PASSWORD,
-            port=config.MYSQL_PORT, # <<< ESTA LINHA É CRUCIAL PARA PASSAR A PORTA CORRETA
-            # Se a conexão falhar novamente com um erro relacionado a SSL,
-            # você pode precisar adicionar os parâmetros SSL aqui, como:
-            # ssl_ca='caminho/para/seu/ca.pem',
-            # ssl_verify_cert=True,
-            # ssl_disabled=False, # Geralmente True para habilitar SSL com certificados
+            port=config.MYSQL_PORT, 
+
         )
         if conn.is_connected():
             print(f"Conexão bem-sucedida ao banco de dados MySQL: {config.MYSQL_DATABASE} na porta {config.MYSQL_PORT}")
@@ -77,11 +73,11 @@ def init_db():
             );
             """
             cursor.execute(create_table_query)
-            conn.commit() # <<< Adicionado para garantir a persistência da criação da tabela
+            conn.commit() 
             print("Tabela 'gmail_user_tokens' verificada/criada com sucesso.")
         except Error as e:
             print(f"Erro ao criar/verificar tabela: {e}")
-            conn.rollback() # Em caso de erro na criação da tabela
+            conn.rollback() 
         finally:
             cursor.close()
             conn.close()
@@ -97,10 +93,8 @@ def save_tokens_for_user(user_id, refresh_token, access_token, scopes):
             cursor = conn.cursor()
             # Criptografa o refresh_token
             encrypted_refresh_token = _encrypt_data(refresh_token)
-            # Converte a lista de escopos para string JSON para armazenamento
             scopes_str = json.dumps(scopes)
 
-            # Usamos INSERT ... ON DUPLICATE KEY UPDATE para inserir ou atualizar
             query = """
             INSERT INTO gmail_user_tokens (user_id, refresh_token, access_token, scopes)
             VALUES (%s, %s, %s, %s)
