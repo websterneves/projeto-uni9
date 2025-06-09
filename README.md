@@ -7,9 +7,6 @@ CLIENT_ID=239772650085-q0h1pq3ouhlulij32eobj34s9hm1c1ub.apps.googleusercontent.c
 CLIENT_SECRET=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
 REDIRECT_URI=http://127.0.0.1:5000/api/auth/google/callback
 
-
-# TOKEN_URI 
-
 # MySQL
 MYSQL_HOST=mysql-11eb5333-websterneves-5c7b.j.aivencloud.com
 MYSQL_USER=avnadmin
