@@ -9,9 +9,13 @@ REDIRECT_URI=http://127.0.0.1:5000/api/auth/google/callback
 
 # MySQL
 MYSQL_HOST=mysql-11eb5333-websterneves-5c7b.j.aivencloud.com
+
 MYSQL_USER=avnadmin
+
 MYSQL_PASSWORD=AVNS_0kzBj9zMIldho_bUupN
+
 MYSQL_DATABASE=projeto
+
 MYSQL_PORT=10866
 
 # Criptografia
