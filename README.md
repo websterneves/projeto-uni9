@@ -4,7 +4,9 @@ criar o arquivo .env em app-uni9-main/flet/meu app/ com os seguintes dados.
 
 # Google OAuth
 CLIENT_ID=239772650085-q0h1pq3ouhlulij32eobj34s9hm1c1ub.apps.googleusercontent.com
+
 CLIENT_SECRET=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
+
 REDIRECT_URI=http://127.0.0.1:5000/api/auth/google/callback
 
 # MySQL
